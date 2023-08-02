@@ -2,15 +2,25 @@
 import math
 import pandas as pd
 import numpy as np
+# import matplotlib as mplt
 import matplotlib.pyplot as plt
 
 # Read data from text file
 dataset = pd.read_csv("1_h_01.txt", sep="\t", header=1)
 dataset['mm'] = dataset["mm"].str.replace(',', '.')
 dataset['mm'] = dataset["mm"].astype(float)
+print(dataset)
 
 # Plot the data
 dataset.plot()
+plt.show()
+
+# Plot the data bis
+fig, ax = plt.subplots()
+ax.scatter(dataset['Datum data'], dataset['mm'])
+ax.set_xlabel('Datum')
+ax.set_ylabel('mm')
+ax.set_title('Cumulated 1h EV rainfall data')
 plt.show()
 
 # Calculate sample mean and sample variance
