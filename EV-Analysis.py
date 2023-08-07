@@ -3,15 +3,26 @@ import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
 
 # Read data from text file
 dataset = pd.read_csv("1_h_01.txt", sep="\t", header=1)
+
+# Convert string to floating point number
 dataset['mm'] = dataset["mm"].str.replace(',', '.')
 dataset['mm'] = dataset["mm"].astype(float)
 
+# Convert string to datetime object
+dataset["Datum data"] = pd.to_datetime(dataset["Datum data"], dayfirst=True)
+
 # Plot the data
-dataset.plot()
-plt.show()
+fig, ax = plt.subplots()
+ax.scatter(dataset["Datum data"], dataset["mm"])
+ax.set_ylabel(r'[mm]')
+locator = mplt.dates.AutoDateLocator()
+formatter = mplt.dates.ConciseDateFormatter(locator)
+
+# Plot a histogramm
 
 # Calculate sample mean and sample variance
 sample_mean = dataset['mm'].mean()
