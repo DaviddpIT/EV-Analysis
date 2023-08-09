@@ -6,30 +6,6 @@ import matplotlib as mplt
 import matplotlib.pyplot as plt
 from scipy import stats
 
-def calculate_ecdf(data):
-    """
-    Calculate the Empirical Cumulative Distribution Function ECDF
-    for a statistical sample
-
-    Args:
-        data (list of floats): The data on which to calculate the ECDF.
-
-    Returns:
-        list of floats: 
-    """
-    # Initializie variables
-    freq_rel = np.empty(len(data))
-    y = np.empty(len(data))
-    
-    x = np.sort(data)
-    for i in range(len(x)):
-        # da esplicitare meglio!! sarebbeda controllare quante volte appare!
-        freq_rel[i] = x[i] / (len(data) +1)
-        y = np.cumsum(freq_rel)
-
-    return x, y
-
-
 # Read data from text file
 dataset = pd.read_csv("1_h_01.txt", sep="\t", header=1)
 
@@ -60,12 +36,7 @@ plt.show()
 
 # Calculate the ECDF
 
-# Use own WRONG function
-ecdf = calculate_ecdf(dataset['mm'])
-print(ecdf)
-
-# Use pre-defined function from scipy.stats
-res = stats.ecdf(dataset['Datum data'])
+res = stats.ecdf(dataset['mm'])
 print(res)
 
 # Calculate sample mean and sample variance
