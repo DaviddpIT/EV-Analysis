@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib as mplt
 import matplotlib.pyplot as plt
-import scipy
+from scipy import stats
 
 def calculate_ecdf(data):
     """
@@ -65,7 +65,8 @@ ecdf = calculate_ecdf(dataset['mm'])
 print(ecdf)
 
 # Use pre-defined function from scipy.stats
-
+res = stats.ecdf(dataset['Datum data'])
+print(res)
 
 # Calculate sample mean and sample variance
 sample_mean = dataset['mm'].mean()
