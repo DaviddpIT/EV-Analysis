@@ -21,27 +21,16 @@ dataset["Datum data"] = pd.to_datetime(dataset["Datum data"], dayfirst=True)
 fig, ax = plt.subplots()
 ax.scatter(dataset["Datum data"], dataset["mm"])
 ax.set_ylabel(r'[mm]')
+ax.set_title('Cumulated 1h EV rainfall data')
 locator = mplt.dates.AutoDateLocator()
 formatter = mplt.dates.ConciseDateFormatter(locator)
+plt.show()
 
 # Plot a histogramm
 
-# Plot the data bis
-fig, ax = plt.subplots()
-ax.scatter(dataset['Datum data'], dataset['mm'])
-ax.set_xlabel('Datum')
-ax.set_ylabel('mm')
-ax.set_title('Cumulated 1h EV rainfall data')
-plt.show()
 
 # Calculate the ECDF
-
-# Use own WRONG function
-ecdf = calculate_ecdf(dataset['mm'])
-print(ecdf)
-
-# Use pre-defined function from scipy.stats
-res = stats.ecdf(dataset['Datum data'])
+res = stats.ecdf(dataset['mm'])
 print(res)
 
 # Calculate sample mean and sample variance
