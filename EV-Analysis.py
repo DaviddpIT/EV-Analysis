@@ -65,7 +65,7 @@ ecdf = calculate_ecdf(dataset['mm'])
 print(ecdf)
 
 # Use pre-defined function from scipy.stats
-res = stats.ecdf(dataset['Datum data'])
+res = stats.ecdf(dataset['mm'])
 print(res)
 
 # Calculate sample mean and sample variance
