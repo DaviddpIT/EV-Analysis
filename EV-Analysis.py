@@ -28,10 +28,16 @@ plt.show()
 
 # Plot a histogramm
 
-
 # Calculate the ECDF
 res = stats.ecdf(dataset['mm'])
 print(res)
+
+# Plot the ECDF
+ax = plt.subplot()
+res.cdf.plot(ax)
+ax.set_xlabel('Cumulated rainfall data [mm]')
+ax.set_ylabel('Empirical CDF')
+plt.show()
 
 # Calculate sample mean and sample variance
 sample_mean = dataset['mm'].mean()
@@ -40,9 +46,36 @@ sample_var = dataset['mm'].var()
 print(f'the sample mean is {sample_mean:.2f}')
 print(f'the sample variance is {sample_var:.2f}')
 
-# Apply the Methods of Moments to calculare the two parameters of the Gumbel distribution
+# Apply the Methods of Moments to calculare the two parameters of the Gumbel distribution: location and scale
 eulergamma = 0.57721566490
-a = math.sqrt(6 * sample_var) / math.pi
-u = sample_mean - eulergamma * a
+scale_gumble = math.sqrt(6 * sample_var) / math.pi
+loc_gumbel = sample_mean - eulergamma * scale_gumble
 
-print(f"parameter a: {a:.2f} , parameter u: {u:.2f}")
+print(f"Gumbel scale parameter: {scale_gumble:.2f}",
+      f"Gumbel location parameter: {loc_gumbel:.2f}")
+
+# Generate data points for the x-axis. As I estimated a continuous distribution I can refer to random data points. For graphical comparison the range should be nevertheless similar
+x = np.linspace(dataset['mm'].min(), dataset['mm'].max(), 100)
+
+# Calculate the standardized variable
+y = (x - loc_gumbel) / scale_gumble
+
+# probability density function
+gumbel_r_pdf = stats.gumbel_r.pdf(y)
+
+# cumulative distribution function
+gumbel_r_cdf = stats.gumbel_r.cdf(y)
+
+# Plot the Gumbel distribution COMPARE WITH ECDF
+ax = plt.subplot()
+ax.set_xlabel('cumulative density function')
+res.cdf.plot(ax)
+ax.plot(x, gumbel_r_cdf, label='gumbel_r cdf', color='red')
+ax.legend()
+plt.show()
+
+# Plot the Gumbel distribution COMPARE WITH HISTOGRAMM
+# ax = plt.subplot()
+# ax.set_xlabel('Gumbel probability density function')
+# ax.scatter(dataset['mm'], gumbel_r, label='gumbel_r pdf')
+# plt.show()
