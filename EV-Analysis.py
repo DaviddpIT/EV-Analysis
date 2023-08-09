@@ -36,7 +36,12 @@ plt.show()
 
 # Calculate the ECDF
 
-res = stats.ecdf(dataset['mm'])
+# Use own WRONG function
+ecdf = calculate_ecdf(dataset['mm'])
+print(ecdf)
+
+# Use pre-defined function from scipy.stats
+res = stats.ecdf(dataset['Datum data'])
 print(res)
 
 # Calculate sample mean and sample variance
