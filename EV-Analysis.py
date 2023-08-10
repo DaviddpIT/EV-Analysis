@@ -6,30 +6,6 @@ import matplotlib as mplt
 import matplotlib.pyplot as plt
 from scipy import stats
 
-def calculate_ecdf(data):
-    """
-    Calculate the Empirical Cumulative Distribution Function ECDF
-    for a statistical sample
-
-    Args:
-        data (list of floats): The data on which to calculate the ECDF.
-
-    Returns:
-        list of floats: 
-    """
-    # Initializie variables
-    freq_rel = np.empty(len(data))
-    y = np.empty(len(data))
-    
-    x = np.sort(data)
-    for i in range(len(x)):
-        # da esplicitare meglio!! sarebbeda controllare quante volte appare!
-        freq_rel[i] = x[i] / (len(data) +1)
-        y = np.cumsum(freq_rel)
-
-    return x, y
-
-
 # Read data from text file
 dataset = pd.read_csv("1_h_01.txt", sep="\t", header=1)
 
@@ -45,28 +21,23 @@ dataset["Datum data"] = pd.to_datetime(dataset["Datum data"], dayfirst=True)
 fig, ax = plt.subplots()
 ax.scatter(dataset["Datum data"], dataset["mm"])
 ax.set_ylabel(r'[mm]')
+ax.set_title('Cumulated 1h EV rainfall data')
 locator = mplt.dates.AutoDateLocator()
 formatter = mplt.dates.ConciseDateFormatter(locator)
+plt.show()
 
 # Plot a histogramm
 
-# Plot the data bis
-fig, ax = plt.subplots()
-ax.scatter(dataset['Datum data'], dataset['mm'])
-ax.set_xlabel('Datum')
-ax.set_ylabel('mm')
-ax.set_title('Cumulated 1h EV rainfall data')
-plt.show()
-
 # Calculate the ECDF
-
-# Use own WRONG function
-ecdf = calculate_ecdf(dataset['mm'])
-print(ecdf)
-
-# Use pre-defined function from scipy.stats
-res = stats.ecdf(dataset['Datum data'])
+res = stats.ecdf(dataset['mm'])
 print(res)
+
+# Plot the ECDF
+ax = plt.subplot()
+res.cdf.plot(ax)
+ax.set_xlabel('Cumulated rainfall data [mm]')
+ax.set_ylabel('Empirical CDF')
+plt.show()
 
 # Calculate sample mean and sample variance
 sample_mean = dataset['mm'].mean()
@@ -75,9 +46,36 @@ sample_var = dataset['mm'].var()
 print(f'the sample mean is {sample_mean:.2f}')
 print(f'the sample variance is {sample_var:.2f}')
 
-# Apply the Methods of Moments to calculare the two parameters of the Gumbel distribution
+# Apply the Methods of Moments to calculare the two parameters of the Gumbel distribution: location and scale
 eulergamma = 0.57721566490
-a = math.sqrt(6 * sample_var) / math.pi
-u = sample_mean - eulergamma * a
+scale_gumble = math.sqrt(6 * sample_var) / math.pi
+loc_gumbel = sample_mean - eulergamma * scale_gumble
 
-print(f"parameter a: {a:.2f} , parameter u: {u:.2f}")
+print(f"Gumbel scale parameter: {scale_gumble:.2f}",
+      f"Gumbel location parameter: {loc_gumbel:.2f}")
+
+# Generate data points for the x-axis. As I estimated a continuous distribution I can refer to random data points. For graphical comparison the range should be nevertheless similar
+x = np.linspace(dataset['mm'].min(), dataset['mm'].max(), 100)
+
+# Calculate the standardized variable
+y = (x - loc_gumbel) / scale_gumble
+
+# probability density function
+gumbel_r_pdf = stats.gumbel_r.pdf(y)
+
+# cumulative distribution function
+gumbel_r_cdf = stats.gumbel_r.cdf(y)
+
+# Plot the Gumbel distribution COMPARE WITH ECDF
+ax = plt.subplot()
+ax.set_xlabel('cumulative density function')
+res.cdf.plot(ax)
+ax.plot(x, gumbel_r_cdf, label='gumbel_r cdf', color='red')
+ax.legend()
+plt.show()
+
+# Plot the Gumbel distribution COMPARE WITH HISTOGRAMM
+# ax = plt.subplot()
+# ax.set_xlabel('Gumbel probability density function')
+# ax.scatter(dataset['mm'], gumbel_r, label='gumbel_r pdf')
+# plt.show()
