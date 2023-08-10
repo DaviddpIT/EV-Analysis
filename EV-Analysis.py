@@ -46,7 +46,8 @@ sample_var = dataset['mm'].var()
 print(f'the sample mean is {sample_mean:.2f}')
 print(f'the sample variance is {sample_var:.2f}')
 
-# Apply the Methods of Moments to calculare the two parameters of the Gumbel distribution: location and scale
+# Apply the Methods of Moments to calculate the location and scale parameter
+# of the Gumbel distribution
 eulergamma = 0.57721566490
 scale_gumble = math.sqrt(6 * sample_var) / math.pi
 loc_gumbel = sample_mean - eulergamma * scale_gumble
@@ -54,7 +55,9 @@ loc_gumbel = sample_mean - eulergamma * scale_gumble
 print(f"Gumbel scale parameter: {scale_gumble:.2f}",
       f"Gumbel location parameter: {loc_gumbel:.2f}")
 
-# Generate data points for the x-axis. As I estimated a continuous distribution I can refer to random data points. For graphical comparison the range should be nevertheless similar
+# Generate data points for the x-axis.
+# As I estimated a continuous distribution I can refer to random data points.
+# For graphical comparison the range should be nevertheless similar
 x = np.linspace(dataset['mm'].min(), dataset['mm'].max(), 100)
 
 # Calculate the standardized variable
