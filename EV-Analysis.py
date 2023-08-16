@@ -52,10 +52,10 @@ print(f'the sample variance is {sample_var:.2f}')
 
 # Apply the Methods of Moments to calculate Gumbel distribution parameters
 eulergamma = 0.57721566490
-scale_gumble = math.sqrt(6 * sample_var) / math.pi
-loc_gumbel = sample_mean - eulergamma * scale_gumble
+scale_gumbel = math.sqrt(6 * sample_var) / math.pi
+loc_gumbel = sample_mean - eulergamma * scale_gumbel
 
-print(f"Gumbel scale parameter: {scale_gumble:.2f}",
+print(f"Gumbel scale parameter: {scale_gumbel:.2f}",
       f"Gumbel location parameter: {loc_gumbel:.2f}")
 
 # Generate data points for the x-axis.
@@ -64,10 +64,10 @@ print(f"Gumbel scale parameter: {scale_gumble:.2f}",
 x = np.linspace(dataset['mm'].min(), dataset['mm'].max(), 100)
 
 # Calculate the standardized variable
-y = (x - loc_gumbel) / scale_gumble
+y = (x - loc_gumbel) / scale_gumbel
 
 # probability density function
-gumbel_r_pdf = stats.gumbel_r.pdf(y)
+gumbel_r_pdf = stats.gumbel_r.pdf(y) / scale_gumbel
 
 # cumulative distribution function
 gumbel_r_cdf = stats.gumbel_r.cdf(y)
@@ -83,7 +83,7 @@ plt.show()
 
 # Plot the probability density function and histogram
 fig, ax = plt.subplots()
-plt.hist(dataset['mm'], bins=20, edgecolor='black', density='True', alpha=0.5, label='Histogram')
+plt.hist(dataset['mm'], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
 ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
 plt.xlabel('[mm]')
 plt.ylabel('Density')            
