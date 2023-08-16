@@ -34,11 +34,11 @@ plt.show()
 
 # Calculate the ECDF
 res = stats.ecdf(dataset['mm'])
-print(res)
+# print(res)
 
 # Plot the ECDF
 fig, ax = plt.subplots()
-ax.plot(res.x, res.y)
+res.cdf.plot(ax)
 ax.set_xlabel('Cumulated rainfall data [mm]')
 ax.set_ylabel('Empirical CDF')
 plt.show()
@@ -72,18 +72,20 @@ gumbel_r_pdf = stats.gumbel_r.pdf(y)
 # cumulative distribution function
 gumbel_r_cdf = stats.gumbel_r.cdf(y)
 
-# Plot the Gumbel distribution COMPARE WITH ECDF
+# Plot the empirical cumulative density function and fitted gumbel distribution
 ax = plt.subplot()
-ax.set_xlabel('cumulative density function')
-res.cdf.plot(ax)
-ax.plot(x, gumbel_r_cdf, label='gumbel_r cdf', color='red')
+ax.set_xlabel('x [mm]')
+ax.set_ylabel('probability of non-exceedance: P (X <= x)')
+res.cdf.plot(ax, label='ECDF')
+ax.plot(x, gumbel_r_cdf, label='fitted Gumbel distribution', color='red')
 ax.legend()
 plt.show()
 
-# Plot the Gumbel distribution COMPARE WITH HISTOGRAMM
+# Plot the probability density function and histogram
 fig, ax = plt.subplots()
-ax.plot(res.x, res.y, label='ECDF')              
-ax.plot(x, gumbel_r_cdf, label='Gumbel CDF', color='red')
+plt.hist(dataset['mm'], bins=20, edgecolor='black', density='True', alpha=0.5, label='Histogram')
+ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
+plt.xlabel('[mm]')
+plt.ylabel('Density')            
 ax.legend()
-ax.set_xlabel('Cumulative density function')
 plt.show()
