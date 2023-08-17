@@ -23,14 +23,14 @@ ax.set_ylabel(r'[mm]')
 ax.set_title('Cumulated 1h EV rainfall data')
 locator = mplt.dates.AutoDateLocator()
 formatter = mplt.dates.ConciseDateFormatter(locator)
-plt.show()
+# plt.show()
 
 # Plot a histogramm
 plt.hist(dataset['mm'], bins=20, edgecolor='black')
 plt.xlabel('Cumulated rainfall data [mm]')
 plt.ylabel('Frequency')
 plt.title('Histogram of Cumulated Rainfall Data')
-plt.show()
+# plt.show()
 
 # Calculate the ECDF
 res = stats.ecdf(dataset['mm'])
@@ -41,7 +41,7 @@ fig, ax = plt.subplots()
 res.cdf.plot(ax)
 ax.set_xlabel('Cumulated rainfall data [mm]')
 ax.set_ylabel('Empirical CDF')
-plt.show()
+# plt.show()
 
 # Calculate sample mean and sample variance
 sample_mean = dataset['mm'].mean()
@@ -79,7 +79,7 @@ ax.set_ylabel('probability of non-exceedance: P (X <= x)')
 res.cdf.plot(ax, label='ECDF')
 ax.plot(x, gumbel_r_cdf, label='fitted Gumbel distribution', color='red')
 ax.legend()
-plt.show()
+# plt.show()
 
 # Plot the probability density function and histogram
 fig, ax = plt.subplots()
@@ -88,4 +88,18 @@ ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
 plt.xlabel('[mm]')
 plt.ylabel('Density')            
 ax.legend()
-plt.show()
+# plt.show()
+
+# Calculate hydrological EVs for specified return periods
+return_period = [5, 10, 30 , 50, 100]
+
+# associated propability of non exceedence
+for Tr in return_period:
+      p = 1 - 1 / Tr
+
+# Apply inverse transform sampling via the percent point function
+x = np.zeros(len(return_period))
+# for probability in p:
+#       x[] # enumerate...
+x = stats.gumbel_r.ppf(p, loc=loc_gumbel, scale=scale_gumbel)
+print(x)
