@@ -94,12 +94,19 @@ ax.legend()
 return_period = [5, 10, 30 , 50, 100]
 
 # associated propability of non exceedence
+p = []
 for Tr in return_period:
-      p = 1 - 1 / Tr
+      p.append(1 - 1 / Tr)
 
 # Apply inverse transform sampling via the percent point function
-x = np.zeros(len(return_period))
-# for probability in p:
-#       x[] # enumerate...
-x = stats.gumbel_r.ppf(p, loc=loc_gumbel, scale=scale_gumbel)
-print(x)
+events = []
+for x in p:
+      events.append(stats.gumbel_r.ppf(x, loc=loc_gumbel, scale=scale_gumbel))
+
+# Plot the IDF curve
+fig, ax = plt.subplots()
+ax.plot(return_period, events, label='IDF 1h', color='red')
+plt.xlabel('return period')
+plt.ylabel('intensity [mm]')            
+ax.legend()
+plt.show()
