@@ -7,14 +7,27 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 # Read data from text file
-dataset = pd.read_csv("1_h_01.txt", sep="\t", header=1)
-
-# Convert string to floating point number
-dataset['mm'] = dataset['mm'].str.replace(',', '.').astype(float)
-print(dataset)
+df = pd.read_csv("all_data_02.csv",header=0, sep="\t")
+print(df.head())
 
 # Convert string to datetime object
-dataset["Datum data"] = pd.to_datetime(dataset["Datum data"], dayfirst=True)
+df["date"] = pd.to_datetime(df["date"], dayfirst=True)
+print(df.dtypes)
+
+# Pivot the datatable 
+df = df.pivot(index="date", columns="time", values="value")
+
+# Rename columns
+new_columns = {1:"1h", 2:"2h", 3:"3h", 6:"6h", 12:
+               "12h", 24:"24h", 15:"15min", 30:"30min", 45:"45min"}
+df.rename(columns=new_columns, inplace=True)
+
+
+df.sort_index(ascending=True)
+
+# NOT WORKING RESET INDEX
+df.reset_index()
+print(df)
 
 # Plot the data
 fig, ax = plt.subplots()
