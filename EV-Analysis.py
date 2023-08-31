@@ -48,6 +48,7 @@ plt.title('Histogram of Cumulated Rainfall Data')
 # Calculate the ECDF
 res = stats.ecdf(df["1h"][df['1h'].notna()])
 print(res)
+print()
 
 # Plot the ECDF
 fig, ax = plt.subplots()
@@ -62,6 +63,13 @@ sample_var = df["1h"].var()
 
 print(f'the sample mean is {sample_mean:.2f}')
 print(f'the sample variance is {sample_var:.2f}')
+
+# Create a list of dictionaries to store the Gumbel distribution parameters for different time periods
+column_names = list(df.columns)
+column_names = column_names[1:]
+print(column_names)
+loc_gumbel = []
+scale_gumbel = []
 
 # Apply the Methods of Moments to calculate Gumbel distribution parameters
 eulergamma = 0.57721566490
