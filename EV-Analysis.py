@@ -61,24 +61,35 @@ ax.set_ylabel('Empirical CDF')
 sample_mean = df["1h"].mean()
 sample_var = df["1h"].var()
 
-print(f'the sample mean is {sample_mean:.2f}')
-print(f'the sample variance is {sample_var:.2f}')
+# print(f'the sample mean is {sample_mean:.2f}')
+# print(f'the sample variance is {sample_var:.2f}')
 
-# Create a list of dictionaries to store the Gumbel distribution parameters for different time periods
+# Create dictionaries to store the Gumbel distribution parameters for different time periods
+# Get the keys
 column_names = list(df.columns)
 column_names = column_names[1:]
-print(column_names)
-loc_gumbel = []
-scale_gumbel = []
+
+# Initialize dictionaries
+loc_gumbel = {}
+scale_gumbel = {}
 
 # Apply the Methods of Moments to calculate Gumbel distribution parameters
 eulergamma = 0.57721566490
-scale_gumbel = math.sqrt(6 * sample_var) / math.pi
-loc_gumbel = sample_mean - eulergamma * scale_gumbel
+for key in column_names:
+      sample_mean = df[key].mean()
+      sample_var = df[key].var()
+      scale_gumbel[key] = math.sqrt(6 * sample_var) / math.pi
+      loc_gumbel[key] = sample_mean - eulergamma * scale_gumbel[key]
 
-print(f"Gumbel scale parameter: {scale_gumbel:.2f}",
-      f"Gumbel location parameter: {loc_gumbel:.2f}")
+
+for k, v in scale_gumbel.items():
+      print(f"{k}: Gumbel scale parameter: {v:.2f}")
 print()
+
+for k, v in loc_gumbel.items():
+      print(f"{k}: Gumbel location parameter: {v:.2f}")
+print()
+
 
 # Generate data points for the x-axis.
 # As I estimated a continuous distribution I can refer to random data points.
