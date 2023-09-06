@@ -90,37 +90,44 @@ for k, v in loc_gumbel.items():
       print(f"{k}: Gumbel location parameter: {v:.2f}")
 print()
 
-
 # Generate data points for the x-axis.
-# As I estimated a continuous distribution I can refer to random data points.
+# As I estimate a continuous distribution I can refer to random data points.
 # For graphical comparison the range should be nevertheless similar
-x = np.linspace(df["1h"].min(), df["1h"].max(), 100)
+x = {}
+for key in column_names:
+      x[key] = np.linspace(df[key].min(), df[key].max(), 100)
 
 # Calculate the standardized variable
-y = (x - loc_gumbel) / scale_gumbel
+y = {}
+for key in column_names:
+      y[key] = (x[key] - loc_gumbel[key]) / scale_gumbel[key]
 
 # probability density function
-gumbel_r_pdf = stats.gumbel_r.pdf(y) / scale_gumbel
+gumbel_r_pdf = {}
+for key in column_names:
+      gumbel_r_pdf[key] = stats.gumbel_r.pdf(y[key]) / scale_gumbel[key]
 
 # cumulative distribution function
-gumbel_r_cdf = stats.gumbel_r.cdf(y)
+gumbel_r_cdf = {}
+for key in column_names:
+      gumbel_r_cdf[key] = stats.gumbel_r.cdf(y[key])
 
 # Plot the empirical cumulative density function and fitted gumbel distribution
-ax = plt.subplot()
-ax.set_xlabel('x [mm]')
-ax.set_ylabel('probability of non-exceedance: P (X <= x)')
-res.cdf.plot(ax, label='ECDF')
-ax.plot(x, gumbel_r_cdf, label='fitted Gumbel distribution', color='red')
-ax.legend()
+# ax = plt.subplot()
+# ax.set_xlabel('x [mm]')
+# ax.set_ylabel('probability of non-exceedance: P (X <= x)')
+# res.cdf.plot(ax, label='ECDF')
+# ax.plot(x, gumbel_r_cdf, label='fitted Gumbel distribution', color='red')
+# ax.legend()
 # plt.show()
 
 # Plot the probability density function and histogram
-fig, ax = plt.subplots()
-plt.hist(df["1h"][df['1h'].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
-ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
-plt.xlabel('[mm]')
-plt.ylabel('Density')            
-ax.legend()
+# fig, ax = plt.subplots()
+# plt.hist(df["1h"][df['1h'].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
+# ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
+# plt.xlabel('[mm]')
+# plt.ylabel('Density')            
+# ax.legend()
 # plt.show()
 
 # Calculate hydrological EVs for specified return periods
