@@ -140,19 +140,29 @@ for key in column_names:
 # ----------------------------------------------------------------------------
 # Calculate IDF Curves
 # ----------------------------------------------------------------------------
-
-# Calculate hydrological EVs for specified return periods
 return_period = [5, 10, 30 , 50, 100]
 
-# associated propability of non exceedence
-p = []
+# Propability of non exceedence
+probability = []
 for Tr in return_period:
-      p.append(1 - 1 / Tr)
-      print(p)
+      probability.append(1 - 1 / Tr)
 
 # Apply inverse transform sampling via the percent point function
-x = np.zeros(len(return_period))
-# for probability in p:
-#       x[] # enumerate...
-x = stats.gumbel_r.ppf(p, loc=loc_gumbel, scale=scale_gumbel)
-print(x)
+# ( I should get the y not the x?? Check!)
+
+# Calculate extreme values by creating a list of dictionaries
+# ev = np.empty(len(probability), len(column_names))
+data = []
+
+for p in probability:
+      # Create an empty row
+      row = []
+      for key in column_names:
+            ev = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
+            row.append(ev)
+      data.append(row)
+
+ev = pd.DataFrame(data, index=return_period, columns=column_names)
+
+            
+print(ev)
