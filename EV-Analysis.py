@@ -64,7 +64,10 @@ sample_var = df["1h"].var()
 # print(f'the sample mean is {sample_mean:.2f}')
 # print(f'the sample variance is {sample_var:.2f}')
 
-# Create dictionaries to store the Gumbel distribution parameters for different time periods
+# ----------------------------------------------------------------------------
+# Create dictionaries to store the Gumbel distribution parameters for different 
+# time periods
+# ----------------------------------------------------------------------------
 # Get the keys
 column_names = list(df.columns)
 column_names = column_names[1:]
@@ -73,7 +76,9 @@ column_names = column_names[1:]
 loc_gumbel = {}
 scale_gumbel = {}
 
+# ----------------------------------------------------------------------------
 # Apply the Methods of Moments to calculate Gumbel distribution parameters
+# ----------------------------------------------------------------------------
 eulergamma = 0.57721566490
 for key in column_names:
       sample_mean = df[key].mean()
@@ -90,11 +95,13 @@ for k, v in loc_gumbel.items():
       print(f"{k}: Gumbel location parameter: {v:.2f}")
 print()
 
-# Generate data points for the x-axis.
-# As I estimate a continuous distribution I can refer to random data points.
-# For graphical comparison the range should be nevertheless similar
+# ----------------------------------------------------------------------------
+# Calculate datapoints for the fitted Gumbel distribution
+# ----------------------------------------------------------------------------
+# Generate random data points for the x-axis of the plot
 x = {}
 for key in column_names:
+      # For graphical comparison the range should be similar
       x[key] = np.linspace(df[key].min(), df[key].max(), 100)
 
 # Calculate the standardized variable
@@ -102,12 +109,12 @@ y = {}
 for key in column_names:
       y[key] = (x[key] - loc_gumbel[key]) / scale_gumbel[key]
 
-# probability density function
+# Apply the probability density function
 gumbel_r_pdf = {}
 for key in column_names:
       gumbel_r_pdf[key] = stats.gumbel_r.pdf(y[key]) / scale_gumbel[key]
 
-# cumulative distribution function
+# Apply the cumulative distribution function
 gumbel_r_cdf = {}
 for key in column_names:
       gumbel_r_cdf[key] = stats.gumbel_r.cdf(y[key])
@@ -130,12 +137,18 @@ for key in column_names:
 # ax.legend()
 # plt.show()
 
+# ----------------------------------------------------------------------------
+# Calculate IDF Curves
+# ----------------------------------------------------------------------------
+
 # Calculate hydrological EVs for specified return periods
 return_period = [5, 10, 30 , 50, 100]
 
 # associated propability of non exceedence
+p = []
 for Tr in return_period:
-      p = 1 - 1 / Tr
+      p.append(1 - 1 / Tr)
+      print(p)
 
 # Apply inverse transform sampling via the percent point function
 x = np.zeros(len(return_period))
