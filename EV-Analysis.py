@@ -154,11 +154,20 @@ for Tr in return_period:
 # ev = np.empty(len(probability), len(column_names))
 data = []
 
+# for p in probability:
+#       row = []
+#       for key in column_names:
+#             ev_std = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
+            
+#             ev = ev_std * scale_gumbel[key] + loc_gumbel[key]
+#             row.append(ev)
+#       data.append(row)
+
 for p in probability:
-      # Create an empty row
       row = []
       for key in column_names:
-            ev = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
+            ev_std = stats.gumbel_r.ppf(p)
+            ev = ev_std * scale_gumbel[key] + loc_gumbel[key]
             row.append(ev)
       data.append(row)
 
