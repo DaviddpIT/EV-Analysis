@@ -147,31 +147,33 @@ probability = []
 for Tr in return_period:
       probability.append(1 - 1 / Tr)
 
-# Apply inverse transform sampling via the percent point function
-# ( I should get the y not the x?? Check!)
-
-# Calculate extreme values by creating a list of dictionaries
-# ev = np.empty(len(probability), len(column_names))
+# Calculate EVs
 data = []
-
-# for p in probability:
-#       row = []
-#       for key in column_names:
-#             ev_std = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
-            
-#             ev = ev_std * scale_gumbel[key] + loc_gumbel[key]
-#             row.append(ev)
-#       data.append(row)
-
 for p in probability:
       row = []
       for key in column_names:
-            ev_std = stats.gumbel_r.ppf(p)
-            ev = ev_std * scale_gumbel[key] + loc_gumbel[key]
+            # Apply inverse transform sampling via the percent point function gumbel_r.ppf(). By Specifyng the loc and scale parameter, the function automatically handels back transformation from the standardized to the original variable
+            ev = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
             row.append(ev)
       data.append(row)
 
-ev = pd.DataFrame(data, index=return_period, columns=column_names)
+EVs = pd.DataFrame(data, index=return_period, columns=column_names)
+print(EVs)
 
-            
-print(ev)
+# Plot the EVs for a given return period
+# ax = plt.subplot()
+# ax.set_xlabel('duration tp')
+# ax.set_ylabel('[mm]')
+# ax.loglog
+# ax.plot(EVs['1h'], label='extreme values', color='red')
+# ax.legend()
+# plt.show()
+fig, ax = plt.subplots()
+ax.set_xlabel('duration')
+ax.set_ylabel('h [mm]')
+ax.set_title("Computed extreme values") 
+# ax.loglog(list(EVs.columns), EVs.loc['5'], label='Tr = 5 years')
+ax.loglog(list(EVs.columns), [1,2,3,4,5,6,7,8], label='Tr = 5 years')
+ax.legend()
+ax.grid(True)
+plt.show()
