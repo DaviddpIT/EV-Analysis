@@ -160,20 +160,19 @@ for p in probability:
 EVs = pd.DataFrame(data, index=return_period, columns=column_names)
 print(EVs)
 
-# Plot the EVs for a given return period
-# ax = plt.subplot()
-# ax.set_xlabel('duration tp')
-# ax.set_ylabel('[mm]')
-# ax.loglog
-# ax.plot(EVs['1h'], label='extreme values', color='red')
-# ax.legend()
-# plt.show()
+# Select only hourly EVs
+EVs = EVs.drop(columns=['30min', '45min','15min'])
+
+# Plot the EVs for a given return period on log log scale
 fig, ax = plt.subplots()
 ax.set_xlabel('duration')
 ax.set_ylabel('h [mm]')
 ax.set_title("Computed extreme values") 
-# ax.loglog(list(EVs.columns), EVs.loc['5'], label='Tr = 5 years')
-ax.loglog(list(EVs.columns), [1,2,3,4,5,6,7,8], label='Tr = 5 years')
+# Define values for y-axis: EVs for different durations
+h = EVs.loc[5].to_list()
+# Define values for x-values: durations converted to integers
+tp = [int(s[:-1]) for s in EVs.columns.to_list()]
+ax.loglog(tp, h, label='Tr = 5 years', marker='o', linestyle='None')
 ax.legend()
 ax.grid(True)
 plt.show()
