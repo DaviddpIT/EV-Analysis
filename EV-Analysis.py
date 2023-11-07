@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib as mplt
 import matplotlib.pyplot as plt
+import scipy
 from scipy import stats
 
 # Read data from text file
@@ -138,7 +139,7 @@ for key in column_names:
 # plt.show()
 
 # ----------------------------------------------------------------------------
-# Calculate IDF Curves
+# Calculate Extreme Values
 # ----------------------------------------------------------------------------
 return_period = [5, 10, 30 , 50, 100]
 
@@ -176,3 +177,30 @@ ax.loglog(tp, h, label='Tr = 5 years', marker='o', linestyle='None')
 ax.legend()
 ax.grid(True)
 plt.show()
+
+# ----------------------------------------------------------------------------
+# Calculate IDF Curves h(Tr) = a * tp ^ n
+# ----------------------------------------------------------------------------
+
+# Visual Check of the datapoints on normal scale
+EVs.plot()
+
+# Define power law
+def power_law(x, a, b):
+    return a*x**b
+
+# Determine a and n parameters for different return periods
+data = []
+# Define x-data points: durations converted to integers
+tp = [int(s[:-1]) for s in EVs.columns.to_list()]
+for Tr in EVs.index.to_list():
+      row = []
+      # Define y-data points: EVs for different durations
+      h = EVs.loc[Tr].to_list()
+      # Curve fit the data: popt returns the two fitted parameters a and n in a list
+      popt, pcov = scipy.optimize.curve_fit(power_law, tp, h)
+      popt = list(popt)
+      data.append(popt)
+
+Parameters = pd.DataFrame(data, index=return_period, columns=['a','n'])
+print(Parameters)
