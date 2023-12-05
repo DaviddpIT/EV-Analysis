@@ -29,6 +29,7 @@ df.rename(columns=new_columns, inplace=True)
 df.sort_index(ascending=True)
 df = df.reset_index()
 print(df)
+print()
 
 # Plot the data
 fig, ax = plt.subplots()
@@ -120,14 +121,49 @@ gumbel_r_cdf = {}
 for key in column_names:
       gumbel_r_cdf[key] = stats.gumbel_r.cdf(y[key])
 
-# Plot the empirical cumulative density function and fitted gumbel distribution
-# ax = plt.subplot()
-# ax.set_xlabel('x [mm]')
-# ax.set_ylabel('probability of non-exceedance: P (X <= x)')
-# res.cdf.plot(ax, label='ECDF')
-# ax.plot(x, gumbel_r_cdf, label='fitted Gumbel distribution', color='red')
-# ax.legend()
-# plt.show()
+# ----------------------------------------------------------------------------
+# Apply fit functions to get lognormal distribution parameters
+# ----------------------------------------------------------------------------
+
+## !!!!!!! This part has to be verified. The fit method isn't able to find a valid solution. Another distribution coulb be of interest
+
+
+# Check for negative values in the data
+if (df['1h'] < 0).any():
+    print("Data contains negative values. Remove or handle them appropriately.")
+
+# Fit the data to a lognormal distribution
+shape, loc, scale = stats.lognorm.fit(df['1h'].notna(), method="MM")
+
+# Print the parameters of the fitted distribution
+print("Shape parameter (s):", shape)
+print("Location parameter (loc):", loc)
+print("Scale parameter (scale):", scale)
+print()
+
+# Generate random data points for the x-axis of the plot
+x_lognormal = np.linspace(df['1h'].min(), df['1h'].max(), 100)
+
+
+# Apply the cumulative distribution function
+lognormal_cdf = stats.lognorm.cdf(x_lognormal, shape, loc, scale)
+
+print(lognormal_cdf)
+print(gumbel_r_cdf['1h'])
+
+
+# Plot the empirical cumulative density function and fitted distributions
+ax = plt.subplot()
+ax.set_xlabel('x [mm]')
+ax.set_ylabel('probability of non-exceedance: P (X <= x)')
+res.cdf.plot(ax, label='ECDF')
+ax.plot(x['1h'], gumbel_r_cdf['1h'], label='fitted Gumbel distribution', color='red')
+ax.plot(x_lognormal, lognormal_cdf, label='fitted lognormal distribution', color='green')
+ax.legend()
+plt.show()
+
+
+##### !!!! Until here the code has to be verified. Check for another distribution
 
 # Plot the probability density function and histogram
 # fig, ax = plt.subplots()
