@@ -31,6 +31,15 @@ df = df.reset_index()
 print(df)
 print()
 
+# ----------------------------------------------------------------------------
+# Define dictionary keys for data storage. Every key identifies a different
+# time period
+# ----------------------------------------------------------------------------
+
+# Get the keys
+column_names = list(df.columns)
+column_names = column_names[1:]
+
 # Plot the data
 fig, ax = plt.subplots()
 ax.scatter(df["date"], df["1h"])
@@ -47,14 +56,17 @@ plt.ylabel('Frequency')
 plt.title('Histogram of Cumulated Rainfall Data')
 # plt.show()
 
-# Calculate the ECDF
-res = stats.ecdf(df["1h"][df['1h'].notna()])
-print(res)
-print()
+# Calculate the ECDFs
+ecdf = {}
+for key in column_names:
+      ecdf[key] = stats.ecdf(df[key][df[key].notna()])
+
+# print(ecdf['1h'])
+# print()
 
 # Plot the ECDF
 fig, ax = plt.subplots()
-res.cdf.plot(ax)
+ecdf['1h'].cdf.plot(ax)
 ax.set_xlabel('Cumulated rainfall data [mm]')
 ax.set_ylabel('Empirical CDF')
 # plt.show()
@@ -67,27 +79,19 @@ sample_var = df["1h"].var()
 # print(f'the sample variance is {sample_var:.2f}')
 
 # ----------------------------------------------------------------------------
-# Create dictionaries to store the Gumbel distribution parameters for different 
-# time periods
+# Apply the Methods of Moments to calculate Gumbel distribution parameters
 # ----------------------------------------------------------------------------
-# Get the keys
-column_names = list(df.columns)
-column_names = column_names[1:]
 
 # Initialize dictionaries
 loc_gumbel = {}
 scale_gumbel = {}
 
-# ----------------------------------------------------------------------------
-# Apply the Methods of Moments to calculate Gumbel distribution parameters
-# ----------------------------------------------------------------------------
 eulergamma = 0.57721566490
 for key in column_names:
       sample_mean = df[key].mean()
       sample_var = df[key].var()
       scale_gumbel[key] = math.sqrt(6 * sample_var) / math.pi
       loc_gumbel[key] = sample_mean - eulergamma * scale_gumbel[key]
-
 
 for k, v in scale_gumbel.items():
       print(f"{k}: Gumbel scale parameter: {v:.2f}")
@@ -98,13 +102,47 @@ for k, v in loc_gumbel.items():
 print()
 
 # ----------------------------------------------------------------------------
-# Calculate datapoints for the fitted Gumbel distribution
+# Apply fit function to get lognormal distribution parameters
+# ----------------------------------------------------------------------------
+
+# Initialize dictionaries
+shape_lognorm = {}
+loc_lognorm = {}
+scale_lognorm = {}
+
+# Check for negative values in the data. Lognormal is defined only for positive values
+for key in column_names:
+      if (df[key] < 0).any():
+            print("Data contains negative values. Remove or handle them appropriately.")
+
+# Fit the data to a lognormal distribution
+for key in column_names:
+     shape_lognorm[key], loc_lognorm[key], scale_lognorm[key] = stats.lognorm.fit(df[key][df[key].notna()])
+
+# Print the parameters of the fitted distribution
+for k, v in shape_lognorm.items():
+      print(f"{k}: Lognorm shape parameter: {v:.2f}")
+print()
+
+for k, v in loc_lognorm.items():
+      print(f"{k}: Lognorm location parameter: {v:.2f}")
+print()
+
+for k, v in scale_lognorm.items():
+      print(f"{k}: Lognorm scale parameter: {v:.2f}")
+print()
+
+# ----------------------------------------------------------------------------
+# Calculate datapoints from the fitted distributions
 # ----------------------------------------------------------------------------
 # Generate random data points for the x-axis of the plot
 x = {}
 for key in column_names:
       # For graphical comparison the range should be similar
       x[key] = np.linspace(df[key].min(), df[key].max(), 100)
+
+# ----------------------------------------------------------------------------
+# Gumbel
 
 # Calculate the standardized variable
 y = {}
@@ -119,60 +157,43 @@ for key in column_names:
 # Apply the cumulative distribution function
 gumbel_r_cdf = {}
 for key in column_names:
-      gumbel_r_cdf[key] = stats.gumbel_r.cdf(y[key])
+      gumbel_r_cdf[key] = stats.gumbel_r.cdf(x[key], loc_gumbel[key], scale_gumbel[key])
 
 # ----------------------------------------------------------------------------
-# Apply fit functions to get lognormal distribution parameters
-# ----------------------------------------------------------------------------
+# Lognormal
 
-## !!!!!!! This part has to be verified. The fit method isn't able to find a valid solution. Another distribution coulb be of interest
-
-
-# Check for negative values in the data
-if (df['1h'] < 0).any():
-    print("Data contains negative values. Remove or handle them appropriately.")
-
-# Fit the data to a lognormal distribution
-shape, loc, scale = stats.lognorm.fit(df['1h'].notna(), method="MM")
-
-# Print the parameters of the fitted distribution
-print("Shape parameter (s):", shape)
-print("Location parameter (loc):", loc)
-print("Scale parameter (scale):", scale)
-print()
-
-# Generate random data points for the x-axis of the plot
-x_lognormal = np.linspace(df['1h'].min(), df['1h'].max(), 100)
-
+# Apply the probability density function
+lognorm_pdf = {}
+for key in column_names:
+      lognorm_pdf[key] = lognormal_pdf = stats.lognorm.pdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
 
 # Apply the cumulative distribution function
-lognormal_cdf = stats.lognorm.cdf(x_lognormal, shape, loc, scale)
+lognorm_cdf = {}
+for key in column_names:
+      lognorm_cdf[key] = lognormal_cdf = stats.lognorm.cdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
 
-print(lognormal_cdf)
-print(gumbel_r_cdf['1h'])
-
+# From here on the code does apply only for a given dictionary key (e.g. ’1h’)
+# that for now has to be setted by hand
 
 # Plot the empirical cumulative density function and fitted distributions
 ax = plt.subplot()
 ax.set_xlabel('x [mm]')
 ax.set_ylabel('probability of non-exceedance: P (X <= x)')
-res.cdf.plot(ax, label='ECDF')
+ecdf['1h'].cdf.plot(ax, label='ECDF')
 ax.plot(x['1h'], gumbel_r_cdf['1h'], label='fitted Gumbel distribution', color='red')
-ax.plot(x_lognormal, lognormal_cdf, label='fitted lognormal distribution', color='green')
+ax.plot(x['1h'], lognorm_cdf['1h'], label='fitted lognormal distribution', color='green')
 ax.legend()
-plt.show()
-
-
-##### !!!! Until here the code has to be verified. Check for another distribution
+# plt.show()
 
 # Plot the probability density function and histogram
-# fig, ax = plt.subplots()
-# plt.hist(df["1h"][df['1h'].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
-# ax.plot(x, gumbel_r_pdf, label='fitted Gumbel distribution', color='red')
-# plt.xlabel('[mm]')
-# plt.ylabel('Density')            
-# ax.legend()
-# plt.show()
+fig, ax = plt.subplots()
+plt.hist(df["1h"][df['1h'].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
+ax.plot(x['1h'], gumbel_r_pdf['1h'], label='fitted Gumbel distribution', color='red')
+ax.plot(x['1h'], lognorm_pdf['1h'], label='fitted Lognormal distribution', color='green')
+plt.xlabel('[mm]')
+plt.ylabel('Density')            
+ax.legend()
+plt.show()
 
 # ----------------------------------------------------------------------------
 # Calculate Extreme Values
