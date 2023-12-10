@@ -1,4 +1,3 @@
-# import packages
 import math
 import pandas as pd
 import numpy as np
@@ -135,6 +134,7 @@ print()
 # ----------------------------------------------------------------------------
 # Calculate datapoints from the fitted distributions
 # ----------------------------------------------------------------------------
+
 # Generate random data points for the x-axis of the plot
 x = {}
 for key in column_names:
@@ -165,12 +165,12 @@ for key in column_names:
 # Apply the probability density function
 lognorm_pdf = {}
 for key in column_names:
-      lognorm_pdf[key] = lognormal_pdf = stats.lognorm.pdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+      lognorm_pdf[key] = stats.lognorm.pdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
 
 # Apply the cumulative distribution function
 lognorm_cdf = {}
 for key in column_names:
-      lognorm_cdf[key] = lognormal_cdf = stats.lognorm.cdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+      lognorm_cdf[key] = stats.lognorm.cdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
 
 # From here on the code does apply only for a given dictionary key (e.g. ’1h’)
 # that for now has to be setted by hand
@@ -193,7 +193,34 @@ ax.plot(x['1h'], lognorm_pdf['1h'], label='fitted Lognormal distribution', color
 plt.xlabel('[mm]')
 plt.ylabel('Density')            
 ax.legend()
-plt.show()
+# plt.show()
+
+# ----------------------------------------------------------------------------
+# Apply the Kolmogorov-Smirnof Test to evaluate which distrubtions fits the
+# data better
+# ----------------------------------------------------------------------------
+
+# H0-hypothesis: the rainfall values for a given timeperiod follow the choosen distribution (e.g. Gumbel, lognorm, etc...)
+# Chosen alpha-level = 0.05
+
+# By comparing the p-value we can decide which disrtribution fits best. the higher the p-value (always in case of p-avlues above alpha-level) the more the better a distributions fits the data
+
+# Define distribution objects from the estimated parameters (which have callable methods)
+
+key = '1h'
+lognorm_dist = stats.lognorm(shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+gumbel_dist = stats.gumbel_r(loc_gumbel[key], scale_gumbel[key])
+
+lognorm_test_statistic, lognorm_p_value = stats.ks_1samp(df['1h'][df['1h'].notna()], lognorm_dist.cdf)
+
+gumbel_test_statistic, gumbel_p_value = stats.ks_1samp(df['1h'][df['1h'].notna()], gumbel_dist.cdf)
+
+# Print the test statistic and p-value
+print("KS gumbel Test Statistic:", gumbel_test_statistic)
+print("gumbel p-value:", gumbel_p_value)
+print()
+print("KS lognorm Test Statistic:", lognorm_test_statistic)
+print("lognorm p-value:", lognorm_p_value)
 
 # ----------------------------------------------------------------------------
 # Calculate Extreme Values
