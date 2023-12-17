@@ -60,6 +60,7 @@ ecdf = {}
 for key in column_names:
       ecdf[key] = stats.ecdf(df[key][df[key].notna()])
 
+# print ECDF results
 # print(ecdf['1h'])
 # print()
 
@@ -105,6 +106,7 @@ print()
 # ----------------------------------------------------------------------------
 
 # Initialize dictionaries
+lognorm_dist = {}
 shape_lognorm = {}
 loc_lognorm = {}
 scale_lognorm = {}
@@ -118,18 +120,21 @@ for key in column_names:
 for key in column_names:
      shape_lognorm[key], loc_lognorm[key], scale_lognorm[key] = stats.lognorm.fit(df[key][df[key].notna()])
 
+     # Define the lognorm distribution object from the estimated parameters
+     lognorm_dist['key'] = stats.lognorm(shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+
 # Print the parameters of the fitted distribution
-for k, v in shape_lognorm.items():
-      print(f"{k}: Lognorm shape parameter: {v:.2f}")
-print()
+# for k, v in shape_lognorm.items():
+#       print(f"{k}: Lognorm shape parameter: {v:.2f}")
+# print()
 
-for k, v in loc_lognorm.items():
-      print(f"{k}: Lognorm location parameter: {v:.2f}")
-print()
+# for k, v in loc_lognorm.items():
+#       print(f"{k}: Lognorm location parameter: {v:.2f}")
+# print()
 
-for k, v in scale_lognorm.items():
-      print(f"{k}: Lognorm scale parameter: {v:.2f}")
-print()
+# for k, v in scale_lognorm.items():
+#       print(f"{k}: Lognorm scale parameter: {v:.2f}")
+# print()
 
 # ----------------------------------------------------------------------------
 # Calculate datapoints from the fitted distributions
@@ -203,7 +208,7 @@ ax.legend()
 # H0-hypothesis: the rainfall values for a given timeperiod follow the choosen distribution (e.g. Gumbel, lognorm, etc...)
 # Chosen alpha-level = 0.05
 
-# By comparing the p-value we can decide which disrtribution fits best. the higher the p-value (always in case of p-avlues above alpha-level) the more the better a distributions fits the data
+# By comparing the p-value we can decide which disrtribution fits best. the higher the p-value (always in case of p-avlues above alpha-level) the better a distributions fits the data
 
 # Define distribution objects from the estimated parameters (which have callable methods)
 
@@ -221,6 +226,14 @@ print("gumbel p-value:", gumbel_p_value)
 print()
 print("KS lognorm Test Statistic:", lognorm_test_statistic)
 print("lognorm p-value:", lognorm_p_value)
+
+if lognorm_p_value < gumbel_p_value:
+      print()
+      print("Considering the given p-values The gumbel distributions fits the data better. the user should adapt the code accordingly \n")
+else:
+      
+      print()
+      print("Considering the given p-values The Lognorm distributions fits the data better. the user should adapt the code accordingly \n")
 
 # ----------------------------------------------------------------------------
 # Calculate Extreme Values
@@ -245,18 +258,23 @@ for p in probability:
 EVs = pd.DataFrame(data, index=return_period, columns=column_names)
 print(EVs)
 
-# Select only hourly EVs
-EVs = EVs.drop(columns=['30min', '45min','15min'])
-
 # Plot the EVs for a given return period on log log scale
 fig, ax = plt.subplots()
 ax.set_xlabel('duration')
 ax.set_ylabel('h [mm]')
 ax.set_title("Computed extreme values") 
+
 # Define values for y-axis: EVs for different durations
 h = EVs.loc[5].to_list()
+
 # Define values for x-values: durations converted to integers
-tp = [int(s[:-1]) for s in EVs.columns.to_list()]
+tp = []
+for s in EVs.columns.to_list():
+      if len(s) > 3:
+            # Convert minutes to hours
+            tp.append(int(s[:-3]) * 1 / 60)
+      else:
+            tp.append(int(s[:-1]))
 ax.loglog(tp, h, label='Tr = 5 years', marker='o', linestyle='None')
 ax.legend()
 ax.grid(True)
