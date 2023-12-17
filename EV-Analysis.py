@@ -60,6 +60,7 @@ ecdf = {}
 for key in column_names:
       ecdf[key] = stats.ecdf(df[key][df[key].notna()])
 
+# print ECDF results
 # print(ecdf['1h'])
 # print()
 
@@ -82,6 +83,7 @@ sample_var = df["1h"].var()
 # ----------------------------------------------------------------------------
 
 # Initialize dictionaries
+gumbel_dist = {}
 loc_gumbel = {}
 scale_gumbel = {}
 
@@ -92,19 +94,25 @@ for key in column_names:
       scale_gumbel[key] = math.sqrt(6 * sample_var) / math.pi
       loc_gumbel[key] = sample_mean - eulergamma * scale_gumbel[key]
 
-for k, v in scale_gumbel.items():
-      print(f"{k}: Gumbel scale parameter: {v:.2f}")
-print()
+# Print the parameters of the fitted distribution
+# for k, v in scale_gumbel.items():
+#       print(f"{k}: Gumbel scale parameter: {v:.2f}")
+# print()
 
-for k, v in loc_gumbel.items():
-      print(f"{k}: Gumbel location parameter: {v:.2f}")
-print()
+# for k, v in loc_gumbel.items():
+#       print(f"{k}: Gumbel location parameter: {v:.2f}")
+# print()
+
+# Define a frozen gumbel distribution object from the estimated parameters
+for key in column_names:
+      gumbel_dist[key] = stats.gumbel_r(loc_gumbel[key], scale_gumbel[key])
 
 # ----------------------------------------------------------------------------
 # Apply fit function to get lognormal distribution parameters
 # ----------------------------------------------------------------------------
 
 # Initialize dictionaries
+lognorm_dist = {}
 shape_lognorm = {}
 loc_lognorm = {}
 scale_lognorm = {}
@@ -118,18 +126,21 @@ for key in column_names:
 for key in column_names:
      shape_lognorm[key], loc_lognorm[key], scale_lognorm[key] = stats.lognorm.fit(df[key][df[key].notna()])
 
+     # Define a frozen lognorm distribution object from the estimated parameters
+     lognorm_dist[key] = stats.lognorm(shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+
 # Print the parameters of the fitted distribution
-for k, v in shape_lognorm.items():
-      print(f"{k}: Lognorm shape parameter: {v:.2f}")
-print()
+# for k, v in shape_lognorm.items():
+#       print(f"{k}: Lognorm shape parameter: {v:.2f}")
+# print()
 
-for k, v in loc_lognorm.items():
-      print(f"{k}: Lognorm location parameter: {v:.2f}")
-print()
+# for k, v in loc_lognorm.items():
+#       print(f"{k}: Lognorm location parameter: {v:.2f}")
+# print()
 
-for k, v in scale_lognorm.items():
-      print(f"{k}: Lognorm scale parameter: {v:.2f}")
-print()
+# for k, v in scale_lognorm.items():
+#       print(f"{k}: Lognorm scale parameter: {v:.2f}")
+# print()
 
 # ----------------------------------------------------------------------------
 # Calculate datapoints from the fitted distributions
@@ -145,19 +156,16 @@ for key in column_names:
 # Gumbel
 
 # Calculate the standardized variable
-y = {}
-for key in column_names:
-      y[key] = (x[key] - loc_gumbel[key]) / scale_gumbel[key]
 
 # Apply the probability density function
 gumbel_r_pdf = {}
 for key in column_names:
-      gumbel_r_pdf[key] = stats.gumbel_r.pdf(y[key]) / scale_gumbel[key]
+      gumbel_r_pdf[key] = gumbel_dist[key].pdf(x[key])
 
 # Apply the cumulative distribution function
 gumbel_r_cdf = {}
 for key in column_names:
-      gumbel_r_cdf[key] = stats.gumbel_r.cdf(x[key], loc_gumbel[key], scale_gumbel[key])
+      gumbel_r_cdf[key] = gumbel_dist[key].cdf(x[key])
 
 # ----------------------------------------------------------------------------
 # Lognormal
@@ -165,31 +173,33 @@ for key in column_names:
 # Apply the probability density function
 lognorm_pdf = {}
 for key in column_names:
-      lognorm_pdf[key] = stats.lognorm.pdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+      lognorm_pdf[key] = lognorm_dist[key].pdf(x[key])
 
 # Apply the cumulative distribution function
 lognorm_cdf = {}
 for key in column_names:
-      lognorm_cdf[key] = stats.lognorm.cdf(x[key], shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
+      lognorm_cdf[key] = lognorm_dist[key].cdf(x[key])
 
 # From here on the code does apply only for a given dictionary key (e.g. ’1h’)
 # that for now has to be setted by hand
+
+udf_key = '1h'
 
 # Plot the empirical cumulative density function and fitted distributions
 ax = plt.subplot()
 ax.set_xlabel('x [mm]')
 ax.set_ylabel('probability of non-exceedance: P (X <= x)')
-ecdf['1h'].cdf.plot(ax, label='ECDF')
-ax.plot(x['1h'], gumbel_r_cdf['1h'], label='fitted Gumbel distribution', color='red')
-ax.plot(x['1h'], lognorm_cdf['1h'], label='fitted lognormal distribution', color='green')
+ecdf[udf_key].cdf.plot(ax, label='ECDF')
+ax.plot(x[udf_key], gumbel_r_cdf[udf_key], label='fitted Gumbel distribution', color='red')
+ax.plot(x[udf_key], lognorm_cdf[udf_key], label='fitted lognormal distribution', color='green')
 ax.legend()
 # plt.show()
 
 # Plot the probability density function and histogram
 fig, ax = plt.subplots()
-plt.hist(df["1h"][df['1h'].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
-ax.plot(x['1h'], gumbel_r_pdf['1h'], label='fitted Gumbel distribution', color='red')
-ax.plot(x['1h'], lognorm_pdf['1h'], label='fitted Lognormal distribution', color='green')
+plt.hist(df[udf_key][df[udf_key].notna()], bins='auto', edgecolor='white', density='True', alpha=0.5, label='Histogram')
+ax.plot(x[udf_key], gumbel_r_pdf[udf_key], label='fitted Gumbel distribution', color='red')
+ax.plot(x[udf_key], lognorm_pdf[udf_key], label='fitted Lognormal distribution', color='green')
 plt.xlabel('[mm]')
 plt.ylabel('Density')            
 ax.legend()
@@ -203,17 +213,11 @@ ax.legend()
 # H0-hypothesis: the rainfall values for a given timeperiod follow the choosen distribution (e.g. Gumbel, lognorm, etc...)
 # Chosen alpha-level = 0.05
 
-# By comparing the p-value we can decide which disrtribution fits best. the higher the p-value (always in case of p-avlues above alpha-level) the more the better a distributions fits the data
+# By comparing the p-value we can decide which disrtribution fits best. the higher the p-value (always in case of p-avlues above alpha-level) the better a distributions fits the data
 
-# Define distribution objects from the estimated parameters (which have callable methods)
+lognorm_test_statistic, lognorm_p_value = stats.ks_1samp(df[udf_key][df[udf_key].notna()], lognorm_dist[udf_key].cdf)
 
-key = '1h'
-lognorm_dist = stats.lognorm(shape_lognorm[key], loc_lognorm[key], scale_lognorm[key])
-gumbel_dist = stats.gumbel_r(loc_gumbel[key], scale_gumbel[key])
-
-lognorm_test_statistic, lognorm_p_value = stats.ks_1samp(df['1h'][df['1h'].notna()], lognorm_dist.cdf)
-
-gumbel_test_statistic, gumbel_p_value = stats.ks_1samp(df['1h'][df['1h'].notna()], gumbel_dist.cdf)
+gumbel_test_statistic, gumbel_p_value = stats.ks_1samp(df[udf_key][df[udf_key].notna()], gumbel_dist[udf_key].cdf)
 
 # Print the test statistic and p-value
 print("KS gumbel Test Statistic:", gumbel_test_statistic)
@@ -221,6 +225,13 @@ print("gumbel p-value:", gumbel_p_value)
 print()
 print("KS lognorm Test Statistic:", lognorm_test_statistic)
 print("lognorm p-value:", lognorm_p_value)
+
+if lognorm_p_value < gumbel_p_value:
+      print()
+      print("Considering the given p-values The gumbel distributions fits the data better. the user should adapt the code accordingly \n")
+else:
+      print()
+      print("Considering the given p-values The Lognorm distributions fits the data better. the user should adapt the code accordingly \n")
 
 # ----------------------------------------------------------------------------
 # Calculate Extreme Values
@@ -238,25 +249,36 @@ for p in probability:
       row = []
       for key in column_names:
             # Apply inverse transform sampling via the percent point function gumbel_r.ppf(). By Specifyng the loc and scale parameter, the function automatically handels back transformation from the standardized to the original variable
-            ev = stats.gumbel_r.ppf(p, loc=loc_gumbel[key], scale=scale_gumbel[key])
+            ev = lognorm_dist[key].ppf(p)
             row.append(ev)
       data.append(row)
 
 EVs = pd.DataFrame(data, index=return_period, columns=column_names)
 print(EVs)
 
-# Select only hourly EVs
-EVs = EVs.drop(columns=['30min', '45min','15min'])
+# ----------------------------------------------------------------------------
+# Plot Extreme Values
+# ----------------------------------------------------------------------------
 
-# Plot the EVs for a given return period on log log scale
+# Define return period
+udf_return_period = 5
+
+# Define values for y-axis: EVs for different durations
+h = EVs.loc[udf_return_period].to_list()
+
+# Define values for x-values: durations converted to integers
+tp = []
+for s in EVs.columns.to_list():
+      if len(s) > 3:
+            # Convert minutes to hours
+            tp.append(int(s[:-3]) * 1 / 60)
+      else:
+            tp.append(int(s[:-1]))
+
 fig, ax = plt.subplots()
 ax.set_xlabel('duration')
 ax.set_ylabel('h [mm]')
 ax.set_title("Computed extreme values") 
-# Define values for y-axis: EVs for different durations
-h = EVs.loc[5].to_list()
-# Define values for x-values: durations converted to integers
-tp = [int(s[:-1]) for s in EVs.columns.to_list()]
 ax.loglog(tp, h, label='Tr = 5 years', marker='o', linestyle='None')
 ax.legend()
 ax.grid(True)
@@ -268,6 +290,7 @@ plt.show()
 
 # Visual Check of the datapoints on normal scale
 EVs.plot()
+plt.show()
 
 # Define power law
 def power_law(x, a, b):
@@ -275,9 +298,8 @@ def power_law(x, a, b):
 
 # Determine a and n parameters for different return periods
 data = []
-# Define x-data points: durations converted to integers
-tp = [int(s[:-1]) for s in EVs.columns.to_list()]
-for Tr in EVs.index.to_list():
+# x-data points are given by tp previously computed
+for Tr in return_period:
       row = []
       # Define y-data points: EVs for different durations
       h = EVs.loc[Tr].to_list()
