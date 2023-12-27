@@ -200,16 +200,17 @@ def main():
 
       # Plot the data
       fig, ax = plt.subplots()
-      ax.scatter(df["date"], df[udf_key])
+      ax.scatter(df["date"], df[udf_key],)
       ax.set_ylabel(r'[mm]')
-      ax.set_title('Cumulated EV rainfall data')
+      ax.set_title(f'Cumulated EV rainfall data. Duration: {udf_key}')
+      ax.legend()
       plt.show()
 
       # Plot a histogramm
       plt.hist(df[udf_key], bins=20, edgecolor='black')
       plt.xlabel('Cumulated rainfall data [mm]')
       plt.ylabel('Frequency')
-      plt.title('Histogram of Cumulated Rainfall Data')
+      plt.title(f'Histogram of Cumulated Rainfall Data. Duration: {udf_key}')
       plt.show()
 
       # Plot the empirical cumulative density function and fitted distributions
@@ -315,7 +316,7 @@ def main():
                   tp.append(int(s[:-1]))
 
       fig, ax = plt.subplots()
-      ax.set_xlabel('duration')
+      ax.set_xlabel('duration [h]')
       ax.set_ylabel('h [mm]')
       ax.set_title("Computed extreme values") 
       ax.loglog(tp, h, label=f'Tr = {udf_return_period} years', marker='o', linestyle='None')
